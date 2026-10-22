@@ -1,0 +1,42 @@
+CITÉ COLOMBE III · SITE WEB
+BÂTIR S.A
+
+CONTENU DU DOSSIER
+  index.html              page d'accueil (la page principale)
+  merci.html              page affichée après l'envoi du formulaire
+  mentions-legales.html   mentions légales
+  confidentialite.html    politique de confidentialité
+  404.html                page d'erreur
+  robots.txt, sitemap.xml pour le référencement Google
+  .htaccess               règles du serveur Apache (HTTPS, cache, sécurité)
+  vercel.json             mêmes règles, si le site est hébergé sur Vercel
+  assets/                 site.css, site.js, config.js
+  img/                    toutes les images, icônes et l'image de partage
+
+MISE EN LIGNE
+1. Envoyer TOUT le contenu du dossier à la racine du sous-domaine
+   (colombe3.batir-sa.ci), sans le mettre dans un sous-dossier.
+   Le fichier .htaccess est caché : vérifier qu'il est bien envoyé.
+2. Vérifier que le site s'ouvre en https://.
+3. Tester le formulaire (voir ci-dessous).
+
+RÉGLAGES : fichier assets/config.js
+  LEAD_ENDPOINT   adresse qui reçoit les demandes (feuille Google Sheets)
+  WHATSAPP        numéro WhatsApp affiché sur le site
+  PIXEL_ID        identifiant du Pixel Facebook (vide = désactivé)
+Après toute modification de config.js, rien d'autre à changer.
+
+APRÈS UNE MODIFICATION DU SITE
+Dans chaque fichier .html, changer ?v=2 en ?v=3 sur les lignes site.css
+et site.js, pour que les visiteurs reçoivent la nouvelle version.
+
+VÉRIFICATIONS À FAIRE EN LIGNE
+- les vidéos YouTube se lancent dans la page
+- le formulaire : sans la case cochée, il refuse l'envoi ; avec, il mène à merci.html
+- la demande arrive dans la feuille Google Sheets
+- l'aperçu du lien dans WhatsApp montre la vue de la cité
+
+SERVEUR
+Les règles de .htaccess fonctionnent sur un serveur Apache (cPanel par exemple).
+Sur Vercel, c'est vercel.json qui est utilisé. Sur un autre type d'hébergement,
+les règles sont à adapter.

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Merci · Cité Colombe III | BÂTIR S.A</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#002B4D">
+<link rel="icon" href="img/favicon.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/site.css?v=2">
+<style>
+.merci{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 24px;background:linear-gradient(rgba(0,19,34,.5),rgba(0,19,34,.82)),url(img/video-top.jpg) center/cover no-repeat #001D35;color:var(--inv-fg)}
+.merci .logos{display:flex;align-items:center;gap:22px;margin-bottom:40px}
+.merci .logos img:first-child{height:48px;width:auto}.merci .logos img:last-child{height:72px;width:auto}
+.merci h1{font-size:clamp(2.2rem,6vw,4rem);font-weight:700;letter-spacing:-.045em;line-height:1.05;margin:0 0 20px;max-width:16em}
+.merci h1,.merci p{text-shadow:0 2px 18px rgba(0,0,0,.35)}
+.merci p{font-size:clamp(1.05rem,2vw,1.25rem);color:var(--inv-muted);max-width:32em;margin:0 0 36px;line-height:1.55}
+.merci a.back{color:var(--warm);text-decoration:none;font-weight:600}
+.merci a.back:hover{text-decoration:underline}
+</style>
+<script src="assets/config.js"></script>
+<script>(function(){var c=window.COLOMBE3||{};if(!c.PIXEL_ID)return;!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init',c.PIXEL_ID);fbq('track','PageView');fbq('track','Lead')})()</script>
+</head>
+<body>
+<main class="merci">
+  <div class="logos"><img src="img/batir-logo-white.png" alt="BÂTIR S.A" width="96" height="48"><img src="img/cite-logo.png" alt="Cité Colombe III" width="68" height="72"></div>
+  <h1 id="titre">Merci. Votre demande est bien reçue</h1>
+  <p>Un conseiller BÂTIR S.A vous rappelle sous 48 h pour répondre à vos questions et organiser votre visite.</p>
+  <a class="back" href="index.html">← Retour à la cité</a>
+</main>
+<script>
+(function(){
+  try{var n=sessionStorage.getItem('c3nom');if(n){var t=document.getElementById('titre');t.textContent='Merci '+n+', votre demande est bien reçue';sessionStorage.removeItem('c3nom')}}catch(e){}
+})();
+</script>
+</body>
+</html>
