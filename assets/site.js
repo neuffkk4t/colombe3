@@ -14,14 +14,22 @@
     a.addEventListener('click',function(e){
       if(a.querySelector('iframe'))return;
       var f=document.createElement('iframe');
-      f.src='https://www.youtube-nocookie.com/embed/'+a.dataset.yt+'?autoplay=1&rel=0&playsinline=1';
+      f.src='https://www.youtube-nocookie.com/embed/'+a.dataset.yt+'?autoplay=1&rel=0&playsinline=1&enablejsapi=1';
       f.title='Vidéo de la Cité Colombe III';
       f.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';
       f.setAttribute('allowfullscreen','');
       f.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0';
-      a.replaceChildren(f);a.style.cursor='default';
+      a.replaceChildren(f);a.style.cursor='default';a.classList.add('on');
+      // une seule vidéo à la fois : on met les autres en pause
+      document.querySelectorAll('.video.on iframe').forEach(function(o){if(o!==f)pauseVid(o)});
+      // la vidéo se met en pause dès qu'elle sort de l'écran
+      if('IntersectionObserver' in window){
+        new IntersectionObserver(function(en){en.forEach(function(x){if(x.intersectionRatio<0.3)pauseVid(f)})},{threshold:[0,0.3,1]}).observe(a);
+      }
     });
   });
+  function pauseVid(f){try{f.contentWindow.postMessage(JSON.stringify({event:'command',func:'pauseVideo',args:[]}),'*')}catch(e){}}
+  document.addEventListener('visibilitychange',function(){if(document.hidden)document.querySelectorAll('.video.on iframe').forEach(pauseVid)});
 
   // Mouvement : parallaxe au défilement, hero qui s'agrandit, inclinaison à la souris
   var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
