@@ -27,7 +27,7 @@ RÉGLAGES : fichier assets/config.js
 Après toute modification de config.js, rien d'autre à changer.
 
 APRÈS UNE MODIFICATION DU SITE
-Dans chaque fichier .html, changer ?v=11 en ?v=12 sur les lignes site.css
+Dans chaque fichier .html, changer ?v=12 en ?v=13 sur les lignes site.css
 et site.js, pour que les visiteurs reçoivent la nouvelle version.
 
 VÉRIFICATIONS À FAIRE EN LIGNE
