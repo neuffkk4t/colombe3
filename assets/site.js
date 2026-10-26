@@ -7,29 +7,23 @@
   $('prev').addEventListener('click',function(){step(-1)});
   $('next').addEventListener('click',function(){step(1)});
 
-  // Vidéos : lues directement dans la page une fois le site en ligne
-  var embed=true;
-  document.querySelectorAll('.video[data-yt]').forEach(function(a){
-    a.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();a.click()}});
-    a.addEventListener('click',function(e){
-      if(a.querySelector('iframe'))return;
-      var f=document.createElement('iframe');
-      f.src='https://www.youtube-nocookie.com/embed/'+a.dataset.yt+'?autoplay=1&rel=0&playsinline=1&enablejsapi=1';
-      f.title='Vidéo de la Cité Colombe III';
-      f.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';
-      f.setAttribute('allowfullscreen','');
-      f.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0';
-      a.replaceChildren(f);a.style.cursor='default';a.classList.add('on');
-      // une seule vidéo à la fois : on met les autres en pause
-      document.querySelectorAll('.video.on iframe').forEach(function(o){if(o!==f)pauseVid(o)});
-      // la vidéo se met en pause dès qu'elle sort de l'écran
-      if('IntersectionObserver' in window){
-        new IntersectionObserver(function(en){en.forEach(function(x){if(x.intersectionRatio<0.3)pauseVid(f)})},{threshold:[0,0.3,1]}).observe(a);
-      }
-    });
-  });
+  // Vidéos : lecteur YouTube dans la page. Une seule vidéo à la fois, et pause quand on s'en éloigne.
+  var frames=[].slice.call(document.querySelectorAll('.video iframe'));
   function pauseVid(f){try{f.contentWindow.postMessage(JSON.stringify({event:'command',func:'pauseVideo',args:[]}),'*')}catch(e){}}
-  document.addEventListener('visibilitychange',function(){if(document.hidden)document.querySelectorAll('.video.on iframe').forEach(pauseVid)});
+  frames.forEach(function(f){
+    f.addEventListener('load',function(){try{f.contentWindow.postMessage(JSON.stringify({event:'listening',id:1,channel:'widget'}),'*')}catch(e){}});
+    if('IntersectionObserver' in window){
+      new IntersectionObserver(function(en){en.forEach(function(x){if(x.intersectionRatio<0.3)pauseVid(f)})},{threshold:[0,0.3,1]}).observe(f);
+    }
+  });
+  window.addEventListener('message',function(e){
+    if(!/youtube(-nocookie)?\.com$/.test(e.origin.replace(/^https?:\/\//,'')))return;
+    var d;try{d=typeof e.data==='string'?JSON.parse(e.data):e.data}catch(x){return}
+    if(!d)return;
+    var st=d.event==='onStateChange'?d.info:(d.info&&d.info.playerState);
+    if(st===1)frames.forEach(function(f){if(f.contentWindow!==e.source)pauseVid(f)});
+  });
+  document.addEventListener('visibilitychange',function(){if(document.hidden)frames.forEach(pauseVid)});
 
   // Mouvement : parallaxe au défilement, hero qui s'agrandit, inclinaison à la souris
   var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -73,6 +67,48 @@
       });
       hero.addEventListener('pointerleave',function(){layers.forEach(function(l){l.style.translate=''})});
     }
+    // Apparition des titres, cartes et listes au défilement (seulement ce qui est sous l'écran au chargement)
+    var vh0=window.innerHeight;
+    var singles=['.sec .eyebrow','.sec .h2','.sec .lead','.plans h3','.plans > p','.imagine h2','.vcta','.sim','.sched','.metiers','.about .logo'];
+    var groups=['.tiles > li','.stats > .stat','.feat > li','.plan-grid > *','.pts > li','.tiers > *','.steps > *','.sched .bar','.pay-notes > div','.timeline > .tl','.trio > *'];
+    var io=('IntersectionObserver' in window)?new IntersectionObserver(function(en){
+      // L'animation se rejoue à chaque retour : entrée = visible, sortie complète de l'écran = prêt à rejouer
+      en.forEach(function(x){
+        var t=x.target;
+        if(x.isIntersecting&&x.intersectionRatio>=0.12){if(!t.classList.contains('in')){t.classList.add('in');if(t._cnt)t._cnt()}}
+        else if(!x.isIntersecting){t.classList.remove('in');if(t._rst)t._rst()}
+      });
+    },{threshold:[0,0.12],rootMargin:'0px 0px -6% 0px'}):null;
+    function arm(el,d){
+      if(!io||el.closest('.tilt,.par,.story,.hero'))return;
+      var r=el.getBoundingClientRect();
+      if(r.top<vh0*0.92)return;
+      el.classList.add('rv');if(d)el.style.setProperty('--d',d+'s');io.observe(el);
+    }
+    singles.forEach(function(q){document.querySelectorAll(q).forEach(function(el){arm(el,0)})});
+    groups.forEach(function(q){
+      var last=null,k=0;
+      document.querySelectorAll(q).forEach(function(el){
+        var p=el.parentElement;if(p!==last){last=p;k=0}
+        arm(el,Math.min(k*0.09,0.45));k++;
+      });
+    });
+    // Chiffres qui comptent de zéro à leur valeur
+    document.querySelectorAll('.stat b').forEach(function(b){
+      var t=b.textContent,m=t.match(/^(\d[\d\s\u00a0]*)(.*)$/);
+      if(!m||/[\/]/.test(m[2])||!io)return;
+      var r=b.getBoundingClientRect();if(r.top<vh0*0.92)return;
+      var n=parseInt(m[1].replace(/\D/g,''),10),suf=m[2],big=n>=1000;
+      var fmt=function(v){var x=String(v);return big?x.replace(/\B(?=(\d{3})+(?!\d))/g,'\u00a0'):x};
+      b.textContent=fmt(0)+suf;
+      b._rst=function(){b.textContent=fmt(0)+suf};
+      b._cnt=function(){
+        var t0=performance.now(),dur=1400;
+        (function f(now){var p=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-p,3);b.textContent=fmt(Math.round(n*e))+suf;if(p<1)requestAnimationFrame(f);else b.textContent=t}) (t0);
+      };
+      io.observe(b);
+    });
+
   }
 
 
@@ -119,12 +155,33 @@
         now=fr+P*.2;
       }
       L.unshift(['Frais de dossier, à l\'ouverture',fr]);
-      $('s-prix').textContent=nf(P);
-      $('s-list').innerHTML=L.map(function(x){return '<li><span>'+x[0]+'</span><b>'+nf(x[1])+'</b></li>'}).join('');
-      $('s-now').textContent=nf(now);
+      $('s-list').innerHTML=L.map(function(x){return '<li><span>'+x[0]+'</span><b data-to="'+x[1]+'">'+nf(x[1])+'</b></li>'}).join('');
+      $('s-prix').dataset.to=P;$('s-now').dataset.to=now;
+      $('s-prix').textContent=nf(P);$('s-now').textContent=nf(now);
+      count();
       $('simval').value='Gamme '+names[P]+' ('+nf(P)+'), '+(m==='ech'?'paiement échelonné':'prêt bancaire')+', à prévoir pour démarrer : '+nf(now);
     }
-    box.addEventListener('change',calc);calc();
+    var seen={},anim=!matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Les montants comptent jusqu'à leur valeur : au changement de choix (depuis l'ancienne valeur) et à chaque arrivée sur le simulateur (depuis zéro)
+    function count(from0){
+      if(!anim)return;
+      var els=[].slice.call(box.querySelectorAll('[data-to]')),t0=performance.now(),dur=from0?1200:650;
+      var starts=els.map(function(el,i){var k=el.id||('l'+i);return from0?0:(seen[k]||0)});
+      els.forEach(function(el,i){seen[el.id||('l'+i)]=+el.dataset.to});
+      (function f(now){
+        var p=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-p,3);
+        els.forEach(function(el,i){var to=+el.dataset.to;el.textContent=nf(starts[i]+(to-starts[i])*(p<1?e:1))});
+        if(p<1)requestAnimationFrame(f);
+      })(t0);
+    }
+    box.addEventListener('change',function(){calc()});calc();
+    if(anim&&'IntersectionObserver' in window){
+      var r0=box.getBoundingClientRect();
+      new IntersectionObserver(function(en){en.forEach(function(x){
+        if(x.isIntersecting&&x.intersectionRatio>=0.25){count(true)}
+        else if(!x.isIntersecting){box.querySelectorAll('[data-to]').forEach(function(el){el.textContent=nf(0)})}
+      })},{threshold:[0,0.25]}).observe(box);
+    }
   })();
 
   // Réglage : adresse qui reçoit les demandes une fois la page en ligne
@@ -177,7 +234,7 @@
       location.href='merci.html';
     }catch(e){
       err.innerHTML="L'envoi a échoué. Réessayez, ou <a href=\""+waLink(data)+"\" target=\"_blank\" rel=\"noopener\">écrivez-nous sur WhatsApp</a> ou appelez le (+225) 07 67 98 98 98.";
-      err.hidden=false;btn.disabled=false;btn.textContent='Envoyer ma demande';
+      err.hidden=false;btn.disabled=false;btn.textContent='Je confirme ma demande';
     }
   });
 })();
